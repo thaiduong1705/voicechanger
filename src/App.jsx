@@ -1,50 +1,55 @@
-import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useState } from "react";
 import "./App.css";
 import axios from "axios";
 
 function App() {
-	const [file, setFile] = useState("");
-	const [outputFile, setOutput] = useState("");
+	const [filePath, setFilePath] = useState("");
+	const [outputPath, setOutputPath] = useState("E:\DMT_AI\output\out.wav")
+	// useEffect(() => {
+	// 	let ignore = false;
+	// 	if (file != "" && !ignore) {
+	// 		// axios.post("http://127.0.0.1:5000/message", {
+	// 		// 	audio_input:"E:\\RVC1006Nvidia\\RVC1006Nvidia\\opt\\vocal_y2matejljjtjx1.com - NHỮNG LỜI HỨA BỎ QUÊN  VŨ x DEAR JANE Official MV.mp3_10.wav",
+    // 		// 	pitch:0,
+    // 		// 	model_path:"E:\\RVC1006Nvidia\\RVC1006Nvidia\\assets\\weights\\captain-quang.pth"
+	// 		// });
+	// 	}
 
-	useEffect(() => {
-		let ignore = false;
-		if (file != "" && !ignore) {
-			axios.post("url", {});
+	// 	return () => {
+	// 		ignore = true;
+	// 	};
+	// }, [file]);
+
+	const handleClick = async () => {
+		const response = await axios.post("http://127.0.0.1:5000/message", {
+			audio_input: filePath,
+			pitch:0,
+			model_path:"E:\\RVC1006Nvidia\\RVC1006Nvidia\\assets\\weights\\captain-quang.pth"
+		});
+
+		if (response.status === 200) {
+			setOutputPath(prev => response.data.path)
+			console.log(outputPath)
 		}
-
-		return () => {
-			ignore = true;
-		};
-	}, [file]);
-	return (
-		<div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-[100%]">
-			<div className="translate-x-[-50%] translate-y-[-50%] absolute left-[50%] top-[50%] text-4xl text-center ">
+	}
+	return ( 
+		<div className="wrapper">
+			<div className="text-xl ">
 				<div className="block">
-					<input
-						type="file"
-						onChange={(e) => {
-							setFile(e.target.files[0]);
-						}}
-						accept="audio/*"
-					></input>
-					{file != "" && (
+					<input type="text" onChange={(e) => setFilePath(e.target.value)} className="w-[1000px]"/>
+					<button onClick={handleClick} className="block outline-none border-none bg-green-500 mt-8 text-4xl hover:cursor-pointer disabled:bg-gray-700" disabled={!filePath}>Generate</button>
+					{outputPath != "" && (
 						<figure>
-							<figcaption className="my-4">Nghe giọng thánh thót của Cấn Đức Quang</figcaption>
+							<figcaption className="my-4 text-4xl">Nghe giọng thánh thót của Cấn Đức Quang</figcaption>
 							<audio
 								controls
-								src={typeof file == "string" ? file : URL.createObjectURL(file)}
 								className="my-4 w-[100%]"
-							></audio>
 
-							<a
-								href={URL.createObjectURL(file)}
-								download={`${URL.createObjectURL(file)}`}
-								className="text-blue-700"
 							>
-								Tải bài hát do Quang hát.
-							</a>
+								<source src={outputPath} type="audio/wav"></source>
+							</audio>
+
+							
 						</figure>
 					)}
 				</div>
