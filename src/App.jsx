@@ -2,9 +2,9 @@ import { useState } from "react";
 import "./App.css";
 import axios from "axios";
 
-function App() {
+const App = () => {
 	const [filePath, setFilePath] = useState("");
-	const [outputPath, setOutputPath] = useState("E:\DMT_AI\output\out.wav")
+	const [outputPath, setOutputPath] = useState(null)
 	// useEffect(() => {
 	// 	let ignore = false;
 	// 	if (file != "" && !ignore) {
@@ -21,24 +21,50 @@ function App() {
 	// }, [file]);
 
 	const handleClick = async () => {
-		const response = await axios.post("http://127.0.0.1:5000/message", {
-			audio_input: filePath,
-			pitch:0,
-			model_path:"E:\\RVC1006Nvidia\\RVC1006Nvidia\\assets\\weights\\captain-quang.pth"
-		});
+		try {
+            const formData = new FormData();
+            formData.append('audioFile', filePath);
+			formData.append("pitch", 0);
+		
 
-		if (response.status === 200) {
-			setOutputPath(prev => response.data.path)
-			console.log(outputPath)
-		}
+            const response = await axios.post('http://127.0.0.1:5000/message', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+				responseType: "blob"
+            });
+
+            if (response.status === 200) {
+				setOutputPath(response.data);
+			}
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        }
+	}
+
+	const handleUpload = async () => {
+		try {
+            const formData = new FormData();
+            formData.append('audioFile', filePath);
+
+            const response = await axios.post('http://127.0.0.1:5000/uploads', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log(response.data);
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        }
 	}
 	return ( 
 		<div className="wrapper">
 			<div className="text-xl ">
 				<div className="block">
-					<input type="text" onChange={(e) => setFilePath(e.target.value)} className="w-[1000px]"/>
+					<input type="file" accept="audio/wav" onChange={(e) => setFilePath(e.target.files[0])} className="w-[1000px]"/>
 					<button onClick={handleClick} className="block outline-none border-none bg-green-500 mt-8 text-4xl hover:cursor-pointer disabled:bg-gray-700" disabled={!filePath}>Generate</button>
-					{outputPath != "" && (
+					{outputPath && (
 						<figure>
 							<figcaption className="my-4 text-4xl">Nghe giọng thánh thót của Cấn Đức Quang</figcaption>
 							<audio
@@ -46,7 +72,7 @@ function App() {
 								className="my-4 w-[100%]"
 
 							>
-								<source src={outputPath} type="audio/wav"></source>
+								<source src={URL.createObjectURL(outputPath)} type="audio/wav"></source>
 							</audio>
 
 							
